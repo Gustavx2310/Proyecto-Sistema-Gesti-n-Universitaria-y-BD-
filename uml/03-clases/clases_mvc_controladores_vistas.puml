@@ -1,0 +1,143 @@
+@startuml clases_mvc_controladores_vistas
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+    BackgroundColor #F8FAF8
+    BorderColor #2C5234
+    HeaderBackgroundColor #E8F2EA
+}
+
+title Diagrama de Clases — Capa de Controladores, Vistas (Java Swing) y Punto de Entrada
+
+class SistemaGestionUniversitaria {
+    + {static} main(args : String[]) : void
+}
+
+interface ActionListener <<java.awt.event>> {
+    + actionPerformed(e : ActionEvent) : void
+}
+
+package "sistema.gestion.universitaria.controladores" {
+    class CtrlLogin {
+        - vista : FrmLogin
+        - dao : UsuarioDAO
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+    }
+    class CtrlAlumno {
+        - vista : FrmGestorAlumnos
+        - dao : AlumnoDAO
+        - modeloTabla : DefaultTableModel
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+        - cargarTabla() : void
+        - llenarCamposDesdeTabla() : void
+    }
+    class CtrlDocente {
+        - vista : FrmGestorDocentes
+        - dao : DocenteDAO
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+    }
+    class CtrlEspacioUniversitario {
+        - vista : FrmGestorEspacios
+        - dao : EspacioUniversitarioDAO
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+    }
+    class CtrlCarrera {
+        - vista : FrmGestorCarreras
+        - daoCarrera : CarreraDAO
+        - daoEspacio : EspacioUniversitarioDAO
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+    }
+    class CtrlMateria {
+        - vista : FrmGestorMaterias
+        - daoMateria : MateriaDAO
+        - daoCarrera : CarreraDAO
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+    }
+    class CtrlGrupo {
+        - vista : FrmGestorGrupos
+        - daoGrupo : GrupoDAO
+        - daoMateria : MateriaDAO
+        - daoDocente : DocenteDAO
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+    }
+    class CtrlInscripcion {
+        - vista : FrmInscripciones
+        - daoInscripcion : AlumnoGrupoDAO
+        - daoGrupo : GrupoDAO
+        - daoAlumno : AlumnoDAO
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+    }
+    class CtrlFinanciero {
+        - vista : FrmPagos
+        - dao : FinancieroDAO
+        - idAlumnoSeleccionado : int
+        + iniciar() : void
+        + actionPerformed(e : ActionEvent) : void
+        - generarReciboPDF(matricula, nombre, carrera, monto, recibo) : void
+    }
+}
+
+package "sistema.gestion.universitaria.vistas" {
+    class FrmLogin <<JFrame>>
+    class FrmMenuPrincipal <<JFrame>> {
+        - sesionActual : UsuarioDTO
+        + FrmMenuPrincipal(sesionActual : UsuarioDTO)
+        - aplicarReglasDeAcceso() : void
+        + getSesionActual() : UsuarioDTO
+    }
+    class FrmGestorAlumnos <<JInternalFrame>>
+    class FrmGestorDocentes <<JInternalFrame>>
+    class FrmGestorEspacios <<JInternalFrame>>
+    class FrmGestorCarreras <<JInternalFrame>>
+    class FrmGestorMaterias <<JInternalFrame>>
+    class FrmGestorGrupos <<JInternalFrame>>
+    class FrmInscripciones <<JInternalFrame>>
+    class FrmPagos <<JInternalFrame>>
+}
+
+' Herencia de interfaz
+ActionListener <|.. CtrlLogin
+ActionListener <|.. CtrlAlumno
+ActionListener <|.. CtrlDocente
+ActionListener <|.. CtrlEspacioUniversitario
+ActionListener <|.. CtrlCarrera
+ActionListener <|.. CtrlMateria
+ActionListener <|.. CtrlGrupo
+ActionListener <|.. CtrlInscripcion
+ActionListener <|.. CtrlFinanciero
+
+' Arranque e instanciación
+SistemaGestionUniversitaria ..> CtrlLogin : inicia
+CtrlLogin --> FrmLogin : controla
+CtrlLogin ..> FrmMenuPrincipal : abre con UsuarioDTO
+
+' Menú principal lanza los módulos internos
+FrmMenuPrincipal ..> CtrlAlumno : instancia
+FrmMenuPrincipal ..> CtrlDocente : instancia
+FrmMenuPrincipal ..> CtrlEspacioUniversitario : instancia
+FrmMenuPrincipal ..> CtrlCarrera : instancia
+FrmMenuPrincipal ..> CtrlMateria : instancia
+FrmMenuPrincipal ..> CtrlGrupo : instancia
+FrmMenuPrincipal ..> CtrlInscripcion : instancia
+FrmMenuPrincipal ..> CtrlFinanciero : instancia
+
+' Vínculo Controlador -> Vista
+CtrlAlumno --> FrmGestorAlumnos
+CtrlDocente --> FrmGestorDocentes
+CtrlEspacioUniversitario --> FrmGestorEspacios
+CtrlCarrera --> FrmGestorCarreras
+CtrlMateria --> FrmGestorMaterias
+CtrlGrupo --> FrmGestorGrupos
+CtrlInscripcion --> FrmInscripciones
+CtrlFinanciero --> FrmPagos
+
+@enduml

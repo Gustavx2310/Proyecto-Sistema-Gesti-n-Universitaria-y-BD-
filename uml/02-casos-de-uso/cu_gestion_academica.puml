@@ -1,0 +1,58 @@
+@startuml cu_gestion_academica
+!theme plain
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+    BorderColor #2C5234
+    BackgroundColor #F8FAF8
+}
+
+title Casos de Uso Detallados — Subsistema de Gestión Académica y Reportes
+
+actor "SUPER_GESTOR" as Admin
+actor "DOCENTE" as Docente
+actor "ALUMNO" as Alumno
+actor "Motor MySQL\n(Trigger / Columnas)" as MySQL <<System>>
+
+rectangle "Subsistema Académico" {
+    package "Módulo de Alumnos (CtrlAlumno)" {
+        usecase "Registrar Alumno\n(Persona + Alumno ACID)" as UC_RegAlu
+        usecase "Modificar Alumno /\nCambiar Carrera" as UC_ModAlu
+        usecase "Eliminar Alumno\n(Alumno + Persona ACID)" as UC_DelAlu
+        usecase "Generar Reporte PDF\nde Alumnos (iTextPDF)" as UC_RepAlu
+        usecase "Registrar Auditoría en\nhistorial_cambios_carrera" as UC_Trig
+    }
+
+    package "Módulo de Grupos e Inscripciones (CtrlGrupo / CtrlInscripcion)" {
+        usecase "Administrar Grupos\n(Materia + Docente + Periodo)" as UC_Grup
+        usecase "Consultar Inscritos\npor Grupo" as UC_ConsIns
+        usecase "Inscribir Alumno\nen Grupo" as UC_Ins
+        usecase "Dar de Baja Alumno\nde Grupo" as UC_Baja
+        usecase "Capturar Parcial 1 y 2" as UC_Calif
+        usecase "Calcular CalificacionFinal\nAutomáticamente" as UC_CalcProm
+    }
+}
+
+Admin --> UC_RegAlu
+Admin --> UC_ModAlu
+Admin --> UC_DelAlu
+Admin --> UC_RepAlu
+Admin --> UC_Grup
+Admin --> UC_Ins
+Admin --> UC_Baja
+Admin --> UC_ConsIns
+
+Docente --> UC_Grup
+Docente --> UC_ConsIns
+Docente --> UC_Calif
+
+Alumno --> UC_ConsIns
+Alumno --> UC_Ins
+
+UC_ModAlu ..> UC_Trig : <<include>>\n(si cambia IdCarreraActual)
+UC_Trig --> MySQL
+UC_Calif ..> UC_CalcProm : <<include>>
+UC_CalcProm --> MySQL
+
+@enduml

@@ -1,0 +1,158 @@
+@startuml er_gestion_universitaria
+!theme plain
+skinparam linetype ortho
+skinparam roundcorner 6
+skinparam shadowing false
+skinparam entity {
+    BackgroundColor #F8FAF8
+    BorderColor #2C5234
+    HeaderBackgroundColor #2C5234
+    FontColor #1E1E1E
+}
+
+title Modelo Entidad-Relación — Base de Datos: gestion_universitaria (MySQL 8.0)
+
+entity "persona" as persona {
+    * **IdPersona** : INT <<PK, AI>>
+    --
+    * Nombre : VARCHAR(50)
+    * ApellidoPaterno : VARCHAR(50)
+    ApellidoMaterno : VARCHAR(50)
+    FechaRegistro : DATETIME <<DEFAULT NOW>>
+}
+
+entity "rol" as rol {
+    * **IdRol** : INT <<PK, AI>>
+    --
+    * NombreRol : ENUM('ALUMNO','DOCENTE','SUPER_GESTOR') <<UQ>>
+}
+
+entity "usuario" as usuario {
+    * **IdUsuario** : INT <<PK, AI>>
+    --
+    * IdPersona : INT <<FK>>
+    * IdRol : INT <<FK>>
+    * Username : VARCHAR(50) <<UQ>>
+    * PasswordHash : VARCHAR(255) <<BCrypt>>
+    Activo : TINYINT(1) <<DEFAULT 1>>
+}
+
+entity "espaciouniversitario" as espacio {
+    * **IdEspacio** : INT <<PK, AI>>
+    --
+    * NombreOficial : VARCHAR(150)
+    Estatus : ENUM('Activo','Inactivo')
+}
+
+entity "carrera" as carrera {
+    * **IdCarrera** : INT <<PK, AI>>
+    --
+    * IdEspacio : INT <<FK>>
+    * NombreCarrera : VARCHAR(100)
+    Estatus : ENUM('Activo','En Liquidacion','Inactivo')
+}
+
+entity "materia" as materia {
+    * **IdMateria** : INT <<PK, AI>>
+    --
+    * IdCarrera : INT <<FK>>
+    * NombreMateria : VARCHAR(100)
+    * Creditos : INT
+    Estatus : ENUM('Activa','Inactiva')
+}
+
+entity "docente" as docente {
+    * **IdDocente** : INT <<PK, FK>>
+    --
+    * NumeroEmpleado : VARCHAR(20) <<UQ>>
+    EstatusLaboral : ENUM('Activo','Inactivo','Jubilado','Licencia')
+}
+
+entity "alumno" as alumno {
+    * **IdAlumno** : INT <<PK, FK>>
+    --
+    * Matricula : VARCHAR(20) <<UQ>>
+    * IdCarreraActual : INT <<FK>>
+    * SemestreActual : INT <<DEFAULT 1>>
+    EstatusAcademico : ENUM('Inscrito','Baja Temporal','Baja Definitiva','Egresado')
+    SaldoPendiente : DECIMAL(10,2)
+    SaldoDeudor : DECIMAL(10,2)
+}
+
+entity "grupo" as grupo {
+    * **IdGrupo** : INT <<PK, AI>>
+    --
+    * ClaveGrupo : VARCHAR(15)
+    * IdMateria : INT <<FK>>
+    * IdDocente : INT <<FK>>
+    * PeriodoEscolar : VARCHAR(10)
+}
+
+entity "alumno_grupo" as alumno_grupo {
+    * **IdAlumno** : INT <<PK, FK>>
+    * **IdGrupo** : INT <<PK, FK>>
+    --
+    Parcial1 : DECIMAL(4,2) <<DEFAULT 0.00>>
+    Parcial2 : DECIMAL(4,2) <<DEFAULT 0.00>>
+    FechaInscripcion : DATETIME <<DEFAULT NOW>>
+    CalificacionFinal : DECIMAL(5,2) <<STORED GENERATED: (Parcial1+Parcial2)/2>>
+}
+
+entity "pagos_colegiatura" as pagos {
+    * **IdPago** : INT <<PK, AI>>
+    --
+    * IdAlumno : INT <<FK>>
+    * Monto : DECIMAL(10,2)
+    FechaPago : DATETIME <<DEFAULT NOW>>
+    * Recibo : VARCHAR(50) <<UQ>>
+}
+
+entity "historial_cambios_carrera" as historial {
+    * **IdCambio** : INT <<PK, AI>>
+    --
+    * IdAlumno : INT <<FK>>
+    IdCarreraAnterior : INT <<FK, NULL>>
+    * IdCarreraNueva : INT <<FK>>
+    FechaCambio : DATETIME <<DEFAULT NOW>>
+    MotivoCambio : VARCHAR(255)
+}
+
+' Relaciones de Especialización / Herencia (1:0..1)
+persona ||--o| alumno : "es (IdPersona = IdAlumno)"
+persona ||--o| docente : "es (IdPersona = IdDocente)"
+
+' Seguridad y Acceso (RBAC)
+persona ||--o{ usuario : "posee cuenta"
+rol ||--o{ usuario : "asigna permisos"
+
+' Estructura Académica
+espacio ||--o{ carrera : "oferta"
+carrera ||--o{ materia : "contiene"
+carrera ||--o{ alumno : "cursa actualmente"
+
+' Operación Académica
+materia ||--o{ grupo : "se imparte en"
+docente ||--o{ grupo : "imparte"
+alumno ||--o{ alumno_grupo : "se inscribe"
+grupo ||--o{ alumno_grupo : "agrupa"
+
+' Finanzas y Auditoría
+alumno ||--o{ pagos : "realiza"
+alumno ||--o{ historial : "registra cambios"
+carrera ||--o{ historial : "carrera anterior (NULL)"
+carrera ||--o{ historial : "carrera nueva"
+
+note bottom of historial
+  Auditoría automática:
+  Registra el ingreso inicial (IdCarreraAnterior = NULL)
+  y cada cambio de IdCarreraActual en `alumno`
+  mediante Trigger AFTER UPDATE.
+end note
+
+note right of alumno_grupo
+  Columna generada (STORED):
+  CalificacionFinal = (Parcial1 + Parcial2) / 2
+  calculada directamente por el motor MySQL.
+end note
+
+@enduml

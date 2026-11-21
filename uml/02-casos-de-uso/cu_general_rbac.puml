@@ -1,0 +1,74 @@
+@startuml cu_general_rbac
+!theme plain
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam actor {
+    BorderColor #2C5234
+    BackgroundColor #E8F2EA
+}
+skinparam usecase {
+    BorderColor #2C5234
+    BackgroundColor #F8FAF8
+}
+
+title Diagrama de Casos de Uso General — Control de Acceso Basado en Roles (RBAC)
+
+actor "SUPER_GESTOR\n(Administrador)" as Admin
+actor "DOCENTE" as Docente
+actor "ALUMNO" as Alumno
+
+rectangle "Sistema de Gestión Universitaria (UAEMéx)" {
+    usecase "CU-01: Iniciar Sesión\n(Autenticación BCrypt)" as CU01
+
+    package "Catálogos Institucionales" {
+        usecase "CU-02: Gestionar Espacios\nUniversitarios (CRUD)" as CU02
+        usecase "CU-03: Gestionar Carreras\n(CRUD)" as CU03
+        usecase "CU-04: Gestionar Materias\n(CRUD)" as CU04
+    }
+
+    package "Gestión de Personal y Alumnado" {
+        usecase "CU-05: Gestionar Docentes\n(CRUD Transaccional)" as CU05
+        usecase "CU-06: Gestionar Alumnos\n(CRUD + Auditoría + PDF)" as CU06
+    }
+
+    package "Operación Académica" {
+        usecase "CU-07: Gestionar Grupos\n(CRUD)" as CU07
+        usecase "CU-08: Gestionar Inscripciones\ny Calificaciones" as CU08
+    }
+
+    package "Módulo Financiero" {
+        usecase "CU-09: Procesar Pagos de\nColegiatura (ACID + PDF)" as CU09
+    }
+}
+
+' Todos los actores deben autenticarse
+Admin --> CU01
+Docente --> CU01
+Alumno --> CU01
+
+' Permisos SUPER_GESTOR (Acceso Total)
+Admin --> CU02
+Admin --> CU03
+Admin --> CU04
+Admin --> CU05
+Admin --> CU06
+Admin --> CU07
+Admin --> CU08
+Admin --> CU09
+
+' Permisos DOCENTE (FrmMenuPrincipal.aplicarReglasDeAcceso)
+Docente --> CU07
+Docente --> CU08
+
+' Permisos ALUMNO (FrmMenuPrincipal.aplicarReglasDeAcceso)
+Alumno --> CU08
+Alumno --> CU09
+
+note bottom of CU01
+  Regla Fail-Safe en FrmMenuPrincipal:
+  Todos los menús inician ocultos y solo
+  se habilitan según UsuarioDTO.getNombreRol().
+end note
+
+@enduml

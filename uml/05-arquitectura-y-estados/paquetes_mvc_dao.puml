@@ -1,0 +1,79 @@
+@startuml paquetes_mvc_dao
+!theme plain
+skinparam shadowing false
+skinparam package {
+    BackgroundColor #F8FAF8
+    BorderColor #2C5234
+}
+
+title Diagrama de Paquetes — Arquitectura MVC + DAO (Proyecto Ant en NetBeans)
+
+package "sistema.gestion.universitaria" {
+    [SistemaGestionUniversitaria] as Main
+
+    package "vistas (Presentación - Swing)" as Vistas {
+        [FrmLogin]
+        [FrmMenuPrincipal]
+        [FrmGestor* / FrmInscripciones / FrmPagos]
+    }
+
+    package "controladores (Coordinación - ActionListener)" as Controladores {
+        [CtrlLogin]
+        [CtrlAlumno / CtrlDocente / CtrlEspacioUniversitario]
+        [CtrlCarrera / CtrlMateria / CtrlGrupo]
+        [CtrlInscripcion / CtrlFinanciero]
+    }
+
+    package "dao (Persistencia - JDBC)" as DAO {
+        [UsuarioDAO]
+        [AlumnoDAO / DocenteDAO / FinancieroDAO]
+        [CarreraDAO / MateriaDAO / GrupoDAO]
+        [EspacioUniversitarioDAO / AlumnoGrupoDAO / HistorialCambioCarreraDAO]
+    }
+
+    package "modelo (Entidades de Dominio)" as Modelo {
+        [Persona / Alumno / Docente]
+        [EspacioUniversitario / Carrera / Materia]
+        [Grupo / AlumnoGrupo / PagoColegiatura / HistorialCambioCarrera]
+    }
+
+    package "dto (Transferencia de Sesión)" as DTO {
+        [UsuarioDTO]
+    }
+
+    package "conexion" as Conexion {
+        [ConexionDB]
+    }
+
+    package "recursos" as Recursos {
+        [LogoUAEMEX.png]
+    }
+}
+
+package "Librerías Externas (dist/lib)" <<Library>> {
+    [mysql-connector-j-26.7.0.jar] as MySQLDriver
+    [jbcrypt-0.4.jar] as jBCrypt
+    [itextpdf-5.5.13.3.jar] as iTextPDF
+}
+
+Main ..> Vistas
+Main ..> Controladores
+Main ..> DAO
+
+Vistas ..> DTO : lee rol (RBAC)
+Vistas ..> Controladores : instancia módulos
+Controladores ..> Vistas : escucha eventos y actualiza UI
+Controladores ..> DAO : solicita operaciones
+Controladores ..> Modelo : construye entidades
+Controladores ..> DTO : transporta sesión
+Controladores ..> iTextPDF : genera PDFs
+Controladores ..> Recursos : inserta logo
+
+DAO ..> Conexion : obtiene Connection
+DAO ..> Modelo : mapea ResultSet
+DAO ..> DTO : construye UsuarioDTO
+DAO ..> jBCrypt : valida PasswordHash
+
+Conexion ..> MySQLDriver : DriverManager
+
+@enduml

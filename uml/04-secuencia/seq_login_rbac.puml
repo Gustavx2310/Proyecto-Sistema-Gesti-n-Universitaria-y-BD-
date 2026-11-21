@@ -1,0 +1,77 @@
+@startuml seq_login_rbac
+!theme plain
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #2C5234
+    ActorBorderColor #2C5234
+    LifeLineBorderColor #2C5234
+    ParticipantBorderColor #2C5234
+    ParticipantBackgroundColor #F8FAF8
+}
+
+title Diagrama de Secuencia — Autenticación Segura (BCrypt) y Control de Acceso (RBAC)
+
+actor Usuario
+participant "FrmLogin" as Vista
+participant "CtrlLogin" as Ctrl
+participant "UsuarioDAO" as DAO
+participant "ConexionDB" as DB
+database "MySQL\n(usuario, rol)" as MySQL
+participant "BCrypt" as Crypto
+participant "FrmMenuPrincipal" as Menu
+
+Usuario -> Vista : Ingresa username y password\nHace clic en btnIngresar
+activate Vista
+Vista -> Ctrl : actionPerformed(ActionEvent)
+activate Ctrl
+
+Ctrl -> Vista : getText() / getPassword()
+
+alt Campos vacíos
+    Ctrl -> Vista : JOptionPane.showMessageDialog("Campos vacíos")
+else Campos completos
+    Ctrl -> DAO : login(username, plainPassword)
+    activate DAO
+    DAO -> DB : getConnection()
+    activate DB
+    DB --> DAO : Connection
+    deactivate DB
+
+    DAO -> MySQL : SELECT u.*, r.NombreRol\nFROM Usuario u INNER JOIN Rol r\nWHERE u.Username = ? AND u.Activo = TRUE
+    activate MySQL
+    MySQL --> DAO : ResultSet (PasswordHash, NombreRol)
+    deactivate MySQL
+
+    alt Usuario encontrado y activo
+        DAO -> Crypto : checkpw(plainPassword, hashEnBD)
+        activate Crypto
+        Crypto --> DAO : boolean (coincide)
+        deactivate Crypto
+        alt Hash válido
+            DAO --> Ctrl : new UsuarioDTO(idUsuario, idPersona, username, nombreRol)
+        else Hash inválido
+            DAO --> Ctrl : null
+        end
+    else Usuario no existe o inactivo
+        DAO --> Ctrl : null
+    end
+    deactivate DAO
+
+    alt usuarioLogueado != null
+        Ctrl -> Vista : JOptionPane("Acceso concedido como: " + nombreRol)
+        Ctrl -> Menu : new FrmMenuPrincipal(usuarioLogueado)
+        activate Menu
+        Menu -> Menu : initComponents()
+        Menu -> Menu : aplicarReglasDeAcceso()\n[Fail-Safe: oculta todo y habilita según Rol]
+        Menu --> Usuario : Muestra escritorio con módulos permitidos
+        deactivate Menu
+        Ctrl -> Vista : dispose()
+    else usuarioLogueado == null
+        Ctrl -> Vista : JOptionPane("Acceso Denegado")
+        Ctrl -> Vista : txtPassword.setText("")
+    end
+end
+
+deactivate Ctrl
+deactivate Vista
+@enduml

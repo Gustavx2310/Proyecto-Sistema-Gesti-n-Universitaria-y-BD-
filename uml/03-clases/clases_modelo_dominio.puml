@@ -1,0 +1,186 @@
+@startuml clases_modelo_dominio
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+    BackgroundColor #F8FAF8
+    BorderColor #2C5234
+    HeaderBackgroundColor #E8F2EA
+}
+
+title Diagrama de Clases — Capa de Modelo de Dominio y DTO
+
+package "sistema.gestion.universitaria.modelo" {
+
+    class Persona {
+        # idPersona : Integer
+        # nombre : String
+        # apellidoPaterno : String
+        # apellidoMaterno : String
+        # fechaRegistro : LocalDateTime
+        + Persona()
+        + Persona(idPersona, nombre, apellidoPaterno, apellidoMaterno, fechaRegistro)
+        + getIdPersona() : Integer
+        + setIdPersona(idPersona : Integer) : void
+        + getNombre() : String
+        + setNombre(nombre : String) : void
+        + getApellidoPaterno() : String
+        + setApellidoPaterno(apellidoPaterno : String) : void
+        + getApellidoMaterno() : String
+        + setApellidoMaterno(apellidoMaterno : String) : void
+        + getFechaRegistro() : LocalDateTime
+        + setFechaRegistro(fechaRegistro : LocalDateTime) : void
+    }
+
+    class Alumno {
+        - matricula : String
+        - idCarreraActual : Integer
+        - semestreActual : Integer
+        - estatusAcademico : String
+        + Alumno()
+        + Alumno(idPersona, ..., matricula, idCarreraActual, semestreActual, estatusAcademico)
+        + getMatricula() : String
+        + setMatricula(matricula : String) : void
+        + getIdCarreraActual() : Integer
+        + setIdCarreraActual(idCarreraActual : Integer) : void
+        + getSemestreActual() : Integer
+        + setSemestreActual(semestreActual : Integer) : void
+        + getEstatusAcademico() : String
+        + setEstatusAcademico(estatusAcademico : String) : void
+    }
+
+    class Docente {
+        - numeroEmpleado : String
+        - estatusLaboral : String
+        + Docente()
+        + Docente(idPersona, ..., numeroEmpleado, estatusLaboral)
+        + getNumeroEmpleado() : String
+        + setNumeroEmpleado(numeroEmpleado : String) : void
+        + getEstatusLaboral() : String
+        + setEstatusLaboral(estatusLaboral : String) : void
+    }
+
+    class EspacioUniversitario {
+        - idEspacio : Integer
+        - nombreOficial : String
+        - estatus : String
+        + EspacioUniversitario()
+        + EspacioUniversitario(idEspacio, nombreOficial, estatus)
+        + getIdEspacio() : Integer
+        + getNombreOficial() : String
+        + getEstatus() : String
+    }
+
+    class Carrera {
+        - idCarrera : Integer
+        - idEspacio : Integer
+        - nombreCarrera : String
+        - estatus : String
+        + Carrera()
+        + Carrera(idCarrera, idEspacio, nombreCarrera, estatus)
+        + getIdCarrera() : Integer
+        + getIdEspacio() : Integer
+        + getNombreCarrera() : String
+        + getEstatus() : String
+    }
+
+    class Materia {
+        - idMateria : Integer
+        - idCarrera : Integer
+        - nombreMateria : String
+        - creditos : Integer
+        - estatus : String
+        + Materia()
+        + Materia(idMateria, idCarrera, nombreMateria, creditos, estatus)
+        + getIdMateria() : Integer
+        + getIdCarrera() : Integer
+        + getNombreMateria() : String
+        + getCreditos() : Integer
+        + getEstatus() : String
+    }
+
+    class Grupo {
+        - idGrupo : Integer
+        - claveGrupo : String
+        - idMateria : Integer
+        - idDocente : Integer
+        - periodoEscolar : String
+        - nombreMateria : String
+        - nombreDocente : String
+        + Grupo()
+        + Grupo(idGrupo, claveGrupo, idMateria, idDocente, periodoEscolar)
+        + getIdGrupo() : Integer
+        + getClaveGrupo() : String
+        + getPeriodoEscolar() : String
+    }
+
+    class AlumnoGrupo {
+        - idAlumno : Integer
+        - idGrupo : Integer
+        - parcial1 : Double
+        - parcial2 : Double
+        - calificacionFinal : Double
+        - fechaInscripcion : Timestamp
+        - nombreCompletoAlumno : String
+        - matricula : String
+        + AlumnoGrupo()
+        + getParcial1() : Double
+        + getParcial2() : Double
+        + getCalificacionFinal() : Double
+    }
+
+    class PagoColegiatura {
+        - idPago : int
+        - idAlumno : int
+        - monto : double
+        - folioRecibo : String
+        - fechaPago : Timestamp
+        + PagoColegiatura()
+        + getIdPago() : int
+        + getMonto() : double
+        + getFolioRecibo() : String
+    }
+
+    class HistorialCambioCarrera {
+        - idCambio : Integer
+        - idAlumno : Integer
+        - idCarreraAnterior : Integer
+        - idCarreraNueva : Integer
+        - fechaCambio : LocalDateTime
+        - motivoCambio : String
+        + HistorialCambioCarrera()
+        + HistorialCambioCarrera(idCambio, idAlumno, idCarreraAnterior, idCarreraNueva, fechaCambio, motivoCambio)
+    }
+}
+
+package "sistema.gestion.universitaria.dto" {
+    class UsuarioDTO {
+        - idUsuario : int
+        - idPersona : int
+        - username : String
+        - nombreRol : String
+        + UsuarioDTO(idUsuario, idPersona, username, nombreRol)
+        + getIdUsuario() : int
+        + getIdPersona() : int
+        + getUsername() : String
+        + getNombreRol() : String
+    }
+}
+
+' Herencia
+Persona <|-- Alumno
+Persona <|-- Docente
+
+' Asociaciones lógicas (por ID de dominio)
+EspacioUniversitario "1" -- "0..*" Carrera : contiene >
+Carrera "1" -- "0..*" Materia : integra >
+Carrera "1" -- "0..*" Alumno : cursa <
+Materia "1" -- "0..*" Grupo : instancia >
+Docente "1" -- "0..*" Grupo : imparte >
+Alumno "1" -- "0..*" AlumnoGrupo : inscrito en >
+Grupo "1" -- "0..*" AlumnoGrupo : contiene >
+Alumno "1" -- "0..*" PagoColegiatura : efectúa >
+Alumno "1" -- "0..*" HistorialCambioCarrera : registra >
+Persona "1" -- "0..1" UsuarioDTO : representa sesión >
+
+@enduml

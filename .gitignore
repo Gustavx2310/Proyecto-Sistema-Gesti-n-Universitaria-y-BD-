@@ -1,0 +1,8 @@
+build/
+dist/
+*.class
+*.zip
+nbproject/private/
+*Contraseñas*.txt
+db.properties
+**/nbproject/private/

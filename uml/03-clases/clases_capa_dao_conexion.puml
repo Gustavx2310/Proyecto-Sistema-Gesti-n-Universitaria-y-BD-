@@ -1,0 +1,111 @@
+@startuml clases_capa_dao_conexion
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam class {
+    BackgroundColor #F8FAF8
+    BorderColor #2C5234
+    HeaderBackgroundColor #E8F2EA
+}
+
+title Diagrama de Clases — Capa de Acceso a Datos (DAO) y Conexión JDBC
+
+package "sistema.gestion.universitaria.conexion" {
+    class ConexionDB {
+        - {static} URL : String
+        - {static} USUARIO : String
+        - {static} PASSWORD : String
+        + {static} getConnection() : Connection
+    }
+}
+
+package "sistema.gestion.universitaria.dao" {
+    class UsuarioDAO {
+        + login(username : String, plainPassword : String) : UsuarioDTO
+    }
+
+    class AlumnoDAO {
+        + registrar(alumno : Alumno) : boolean
+        + obtenerTodos() : List<Alumno>
+        + modificar(alumno : Alumno) : boolean
+        + eliminar(idPersona : int) : boolean
+    }
+
+    class DocenteDAO {
+        + registrar(docente : Docente) : boolean
+        + obtenerTodos() : List<Docente>
+        + modificar(docente : Docente) : boolean
+        + eliminar(idPersona : int) : boolean
+    }
+
+    class EspacioUniversitarioDAO {
+        + registrar(espacio : EspacioUniversitario) : boolean
+        + obtenerTodos() : List<EspacioUniversitario>
+        + modificar(espacio : EspacioUniversitario) : boolean
+        + eliminar(idEspacio : int) : boolean
+    }
+
+    class CarreraDAO {
+        + registrar(carrera : Carrera) : boolean
+        + obtenerTodas() : List<Carrera>
+        + modificar(carrera : Carrera) : boolean
+        + eliminar(idCarrera : int) : boolean
+    }
+
+    class MateriaDAO {
+        + registrar(materia : Materia) : boolean
+        + obtenerTodas() : List<Materia>
+        + modificar(materia : Materia) : boolean
+        + eliminar(idMateria : int) : boolean
+    }
+
+    class GrupoDAO {
+        + registrar(grupo : Grupo) : boolean
+        + obtenerTodos() : List<Grupo>
+        + modificar(grupo : Grupo) : boolean
+        + eliminar(idGrupo : int) : boolean
+    }
+
+    class AlumnoGrupoDAO {
+        + registrar(ag : AlumnoGrupo) : boolean
+        + obtenerPorGrupo(idGrupo : int) : List<AlumnoGrupo>
+        + actualizarCalificaciones(idAlumno : int, idGrupo : int, p1 : double, p2 : double) : boolean
+        + eliminar(idAlumno : int, idGrupo : int) : boolean
+    }
+
+    class FinancieroDAO {
+        + procesarPagoColegiatura(idAlumno : int, monto : double, recibo : String) : boolean
+        + buscarDetallesAlumnoPorMatricula(matricula : String) : Object[]
+        + obtenerSaldoDeudor(idAlumno : int) : double
+    }
+
+    class HistorialCambioCarreraDAO {
+        + registrarCambio(historial : HistorialCambioCarrera) : boolean
+    }
+}
+
+package "org.mindrot.jbcrypt" <<External>> {
+    class BCrypt {
+        + {static} checkpw(plaintext : String, hashed : String) : boolean
+    }
+}
+
+UsuarioDAO ..> ConexionDB : usa
+UsuarioDAO ..> BCrypt : verifica hash
+AlumnoDAO ..> ConexionDB : usa (ACID)
+DocenteDAO ..> ConexionDB : usa (ACID)
+EspacioUniversitarioDAO ..> ConexionDB : usa
+CarreraDAO ..> ConexionDB : usa
+MateriaDAO ..> ConexionDB : usa
+GrupoDAO ..> ConexionDB : usa
+AlumnoGrupoDAO ..> ConexionDB : usa
+FinancieroDAO ..> ConexionDB : usa (ACID)
+HistorialCambioCarreraDAO ..> ConexionDB : usa
+
+note bottom of FinancieroDAO
+  AlumnoDAO, DocenteDAO y FinancieroDAO
+  manejan transacciones explícitas mediante
+  conn.setAutoCommit(false), commit() y rollback().
+end note
+
+@enduml

@@ -1,0 +1,42 @@
+@startuml estados_entidades
+!theme plain
+skinparam shadowing false
+skinparam state {
+    BackgroundColor #F8FAF8
+    BorderColor #2C5234
+    StartColor #2C5234
+    EndColor #2C5234
+}
+
+title Diagrama de Máquina de Estados — Ciclos de Vida en Base de Datos
+
+state "Ciclo Académico del Alumno (alumno.EstatusAcademico)" as CicloAlumno {
+    [*] --> Inscrito : Registro inicial\n(SemestreActual = 1)
+    Inscrito --> BajaTemporal : Solicitud de pausa académica
+    BajaTemporal --> Inscrito : Reinscripción autorizada
+    Inscrito --> BajaDefinitiva : Deserción o sanción
+    BajaTemporal --> BajaDefinitiva : Expiración de plazo
+    Inscrito --> Egresado : Conclusión de créditos
+    Inscrito --> Inscrito : Cambio de Carrera\n[Dispara Trigger -> historial_cambios_carrera]
+    BajaDefinitiva --> [*]
+    Egresado --> [*]
+}
+
+state "Ciclo Laboral del Docente (docente.EstatusLaboral)" as CicloDocente {
+    [*] --> Activo : Alta en Persona + Docente (ACID)
+    Activo --> Licencia : Permiso temporal / Sabático
+    Licencia --> Activo : Reincorporación
+    Activo --> Inactivo : Suspensión o término de contrato
+    Inactivo --> Activo : Recontratación
+    Activo --> Jubilado : Retiro definitivo
+    Jubilado --> [*]
+}
+
+state "Estado Financiero de Colegiatura (alumno.SaldoDeudor)" as CicloPago {
+    [*] --> ConAdeudo : Cargo generado\n(SaldoDeudor > 0)
+    ConAdeudo --> ConAdeudo : Abono parcial\n[0 < monto < SaldoDeudor]\n(INSERT pagos_colegiatura + UPDATE SaldoDeudor)
+    ConAdeudo --> Liquidado : Pago total\n[monto == SaldoDeudor]
+    Liquidado --> [*] : Emisión de Recibo PDF
+}
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml despliegue_sistema
+!theme plain
+skinparam shadowing false
+skinparam node {
+    BackgroundColor #F8FAF8
+    BorderColor #2C5234
+}
+
+title Diagrama de Despliegue — Topología Cliente-Servidor (Escritorio Java Swing + MySQL)
+
+node "Estación de Trabajo Cliente\n<<Windows / Linux (Fedora)>>" as Cliente {
+    node "Java Virtual Machine (JVM)" as JVM {
+        artifact "sistema-gestion-universitaria.jar" as AppJar {
+            component "Capa UI (Java Swing)" as UI
+            component "Controladores MVC" as Ctrl
+            component "Capa DAO (JDBC)" as DAO
+        }
+        artifact "jbcrypt-0.4.jar" as LibBCrypt
+        artifact "itextpdf-5.5.13.3.jar" as LibPDF
+        artifact "mysql-connector-j-26.7.0.jar" as LibMySQL
+    }
+
+    folder "Sistema de Archivos Local\n(~/Desktop)" as FS {
+        artifact "Reporte_Alumnos.pdf"
+        artifact "Recibo_<folio>.pdf"
+    }
+}
+
+node "Servidor de Base de Datos\n<<Host / Red Local VirtualBox>>" as ServidorBD {
+    database "MySQL Server 8.0.46\n(Motor InnoDB, utf8mb4)" as MySQL {
+        component "Esquema: gestion_universitaria" as Schema {
+            artifact "12 Tablas Normalizadas"
+            artifact "Triggers de Auditoría"
+            artifact "Columnas Generadas (STORED)"
+        }
+    }
+}
+
+UI --> Ctrl
+Ctrl --> DAO
+Ctrl --> LibPDF
+LibPDF ..> FS : Escribe PDFs
+DAO --> LibBCrypt : Verificación de Hash
+DAO --> LibMySQL
+
+LibMySQL <--> MySQL : **TCP/IP : Puerto 3306**\nProtocolo JDBC\n(jdbc:mysql://<HOST>:3306/gestion_universitaria)
+
+@enduml

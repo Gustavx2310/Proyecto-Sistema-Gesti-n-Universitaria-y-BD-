@@ -1,0 +1,53 @@
+@startuml cu_autenticacion_y_finanzas
+!theme plain
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam usecase {
+    BorderColor #2C5234
+    BackgroundColor #F8FAF8
+}
+
+title Casos de Uso Detallados — Seguridad (RBAC) y Módulo Financiero
+
+actor "Usuario del Sistema" as User
+actor "SUPER_GESTOR" as Admin
+actor "ALUMNO" as Alumno
+actor "Librería jBCrypt" as BCrypt <<System>>
+actor "Librería iTextPDF" as iText <<System>>
+
+rectangle "Autenticación y Finanzas" {
+    package "Módulo de Acceso (CtrlLogin)" {
+        usecase "Ingresar Credenciales" as UC_Login
+        usecase "Validar Hash de Contraseña" as UC_Hash
+        usecase "Cargar Menú según Rol\n(aplicarReglasDeAcceso)" as UC_RBAC
+        usecase "Rechazar Acceso y\nLimpiar Password" as UC_Deny
+    }
+
+    package "Módulo de Pagos (CtrlFinanciero)" {
+        usecase "Buscar Alumno por Matrícula" as UC_Buscar
+        usecase "Validar Monto contra\nSaldoDeudor (Candado Lógico)" as UC_Candado
+        usecase "Ejecutar Transacción ACID\n(Insertar Pago + Descontar Saldo)" as UC_ACID
+        usecase "Aplicar Rollback ante Fallo" as UC_Rollback
+        usecase "Generar Recibo Oficial PDF\nen Escritorio" as UC_PDF
+    }
+}
+
+User --> UC_Login
+UC_Login ..> UC_Hash : <<include>>
+UC_Hash --> BCrypt
+UC_Login ..> UC_RBAC : <<extend>>\n[credenciales válidas]
+UC_Login ..> UC_Deny : <<extend>>\n[credenciales inválidas]
+
+Admin --> UC_Buscar
+Admin --> UC_ACID
+Alumno --> UC_Buscar
+Alumno --> UC_ACID
+
+UC_ACID ..> UC_Buscar : <<include>>
+UC_ACID ..> UC_Candado : <<include>>
+UC_ACID ..> UC_PDF : <<extend>>\n[commit exitoso]
+UC_ACID ..> UC_Rollback : <<extend>>\n[SQLException]
+UC_PDF --> iText
+
+@enduml

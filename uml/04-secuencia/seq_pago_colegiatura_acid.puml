@@ -1,0 +1,83 @@
+@startuml seq_pago_colegiatura_acid
+!theme plain
+skinparam shadowing false
+skinparam sequence {
+    ArrowColor #2C5234
+    ActorBorderColor #2C5234
+    LifeLineBorderColor #2C5234
+    ParticipantBorderColor #2C5234
+    ParticipantBackgroundColor #F8FAF8
+}
+
+title Diagrama de Secuencia — Pago de Colegiatura Transaccional (ACID) y Recibo PDF
+
+actor "Usuario\n(Gestor / Alumno)" as User
+participant "FrmPagos" as Vista
+participant "CtrlFinanciero" as Ctrl
+participant "FinancieroDAO" as DAO
+database "MySQL\n(alumno, pagos_colegiatura)" as MySQL
+participant "iTextPDF\n(PdfWriter)" as PDF
+
+== Fase 1: Búsqueda y Verificación de Alumno ==
+User -> Vista : Ingresa matrícula y clic en btnBuscarAlumno
+activate Vista
+Vista -> Ctrl : actionPerformed(btnBuscarAlumno)
+activate Ctrl
+Ctrl -> DAO : buscarDetallesAlumnoPorMatricula(matricula)
+activate DAO
+DAO -> MySQL : SELECT IdAlumno, Nombre, Carrera, Espacio\nWHERE TRIM(Matricula) = TRIM(?)
+activate MySQL
+MySQL --> DAO : ResultSet
+deactivate MySQL
+DAO --> Ctrl : Object[]{idAlumno, nombre, carrera, centro}
+deactivate DAO
+Ctrl -> Vista : Llena txtNombreAlumno, txtCarrera, txtCentroUniversitario
+deactivate Ctrl
+
+== Fase 2: Validación de Saldo (Candado Lógico) y Transacción ACID ==
+User -> Vista : Ingresa monto y folio de recibo\nClic en btnProcesarPago
+Vista -> Ctrl : actionPerformed(btnProcesarPago)
+activate Ctrl
+
+Ctrl -> DAO : obtenerSaldoDeudor(idAlumnoSeleccionado)
+activate DAO
+DAO -> MySQL : SELECT SaldoDeudor FROM alumno WHERE IdAlumno = ?
+MySQL --> DAO : deudaActual
+DAO --> Ctrl : double deudaActual
+deactivate DAO
+
+alt monto <= 0 OR monto > deudaActual
+    Ctrl -> Vista : JOptionPane("Pago Inválido: supera deuda actual")
+else Monto válido (0 < monto <= deudaActual)
+    Ctrl -> DAO : procesarPagoColegiatura(idAlumno, monto, recibo)
+    activate DAO
+    DAO -> MySQL : setAutoCommit(false)
+    activate MySQL
+    DAO -> MySQL : INSERT INTO pagos_colegiatura\n(IdAlumno, Monto, Recibo, FechaPago)
+    DAO -> MySQL : UPDATE Alumno\nSET SaldoDeudor = SaldoDeudor - ? WHERE IdAlumno = ?
+
+    alt Ambas sentencias SQL exitosas
+        DAO -> MySQL : commit()
+        MySQL --> DAO : OK
+        DAO -> MySQL : setAutoCommit(true) / close()
+        deactivate MySQL
+        DAO --> Ctrl : true
+        deactivate DAO
+
+        Ctrl -> Vista : JOptionPane("Transacción exitosa. Deuda restante: ...")
+        Ctrl -> PDF : generarReciboPDF(matricula, nombre, carrera, monto, recibo)
+        activate PDF
+        PDF --> User : Guarda ~/Desktop/Recibo_<folio>.pdf (con LogoUAEMEX.png)
+        deactivate PDF
+        Ctrl -> Vista : limpiarFormularioCompleto()
+    else SQLException (ej. Recibo duplicado o fallo de red)
+        DAO -> MySQL : rollback()
+        DAO -> MySQL : setAutoCommit(true) / close()
+        DAO --> Ctrl : false
+        Ctrl -> Vista : JOptionPane("Error en transacción. Rollback aplicado.")
+    end
+end
+
+deactivate Ctrl
+deactivate Vista
+@enduml
