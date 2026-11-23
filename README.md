@@ -12,9 +12,7 @@ El desarrollo colaborativo se integró en la rama principal `main`:
 | :--- | :--- | :--- | :--- |
 | **Gustavo Alfonso Ramírez Ramírez,** **Emanuel Hugo Gomez Navor**| [@Gustavx2310](https://github.com/Gustavx2310) [@EmanuelHugo](https://github.com/EmanuelHugo)| `main` | Arquitectura MVC/DAO, Interfaz Java Swing, Conexión JDBC, Seguridad BCrypt/RBAC y Transacciones ACID |
 | **Eliza Paulina Martinez Luis,**   **Maritza barrera Nava,**    **Luis David Mendoza cruz**| [@maritzabarrera296-netizen
-](https://github.com/elipaulina1311-del)  [@elipaulina1311-del
-](https://github.com/maritzabarrera296-netizen)    [@luisdavid184
-](https://github.com/luisdavid184)| `main` | Diseño de la Base de Datos, Módulo de Reportes PDF y Documentación UML |
+](https://github.com/elipaulina1311-del)| `main` | Diseño de la Base de Datos, Módulo de Reportes PDF y Documentación UML |
 
 ---
 
