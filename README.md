@@ -10,9 +10,8 @@ El desarrollo colaborativo se integró en la rama principal `main`:
 
 | Integrante | Usuario GitHub | Rama de Desarrollo | Módulo Principal |
 | :--- | :--- | :--- | :--- |
-| **Gustavo Alfonso Ramírez Ramírez,** **Emanuel Hugo Gomez Navor**| [@Gustavx2310](https://github.com/Gustavx2310) [@EmanuelHugo](https://github.com/EmanuelHugo)| `main` | Arquitectura MVC/DAO, Interfaz Java Swing, Conexión JDBC, Seguridad BCrypt/RBAC y Transacciones ACID |
-| **Eliza Paulina Martinez Luis,**   **Maritza barrera Nava,**    **Luis David Mendoza cruz**| [@maritzabarrera296-netizen
-](https://github.com/elipaulina1311-del)| `main` | Diseño de la Base de Datos, Módulo de Reportes PDF y Documentación UML |
+| **Gustavo Alfonso Ramírez Ramírez**<br>**Emanuel Hugo Gómez Navor** | [@Gustavx2310](https://github.com/Gustavx2310)<br>[@EmanuelHugo](https://github.com/EmanuelHugo) | `main` | Arquitectura MVC/DAO, Interfaz Java Swing, Conexión JDBC, Seguridad BCrypt/RBAC y Transacciones ACID |
+| **Eliza Paulina Martínez Luis**<br>**Maritza Barrera Nava**<br>**Luis David Mendoza Cruz** | [@elipaulina1311-del](https://github.com/elipaulina1311-del)<br>[@maritzabarrera296-netizen](https://github.com/maritzabarrera296-netizen)<br>[@luisdavid184](https://github.com/luisdavid184) | `main` | Diseño de la Base de Datos, Módulo de Reportes PDF y Documentación UML |
 
 ---
 
